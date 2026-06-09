@@ -1,0 +1,8 @@
+interface:
+  display_name: "Codex Local Patches"
+  short_description: "Redeploy Fast, Goal, API, and Remote patches"
+  brand_color: "#2563EB"
+  default_prompt: "Use $codex-local-patches-deploy to redeploy my Codex Desktop local patches after an update."
+
+policy:
+  allow_implicit_invocation: true
