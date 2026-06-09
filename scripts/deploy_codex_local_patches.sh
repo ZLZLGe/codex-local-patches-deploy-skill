@@ -31,7 +31,7 @@ Usage:
 
 Options:
   --app PATH             Codex.app path. Default: /Applications/Codex.app
-  --patch-dir PATH       Existing codex-local-patches directory.
+  --patch-dir PATH       External Remote Control patch directory, only used with --enable-remote.
   --base-url URL         Third-party API base URL, for example https://host/v1.
   --model NAME           Model name to set in ~/.codex/config.toml.
   --provider NAME        Model provider name. Default: custom.

@@ -8,7 +8,7 @@
 - 强制开启 Fast mode。
 - 强制开启 Goal。
 - 可选安装并校验 Remote Control 使用的 `remote.json`。
-- 可选调用用户自己提供的 `codex-local-patches` 目录里的 Remote Control 补丁。
+- 高级可选：调用用户自己提供的 Remote Control patch 目录。
 
 ## 推荐版本
 
@@ -21,9 +21,9 @@ Codex CLI: codex-cli 0.137.0-alpha.4
 系统: macOS / Apple Silicon
 ```
 
-Fast/Goal 补丁是通过匹配 `app.asar` 里的前端 bundle 结构实现的。只要 Codex 更新后相关 JS 结构没有大改，通常可以继续使用。
+第三方 API、Fast、Goal 这三块是这个仓库脚本自包含完成的。Fast/Goal 补丁是通过匹配 `app.asar` 里的前端 bundle 结构实现的。只要 Codex 更新后相关 JS 结构没有大改，通常可以继续使用。
 
-Remote Control 不一样。Remote 依赖额外的 `codex-local-patches` 原始补丁包，而且对 Codex CLI 二进制 hash 很敏感。如果 Codex CLI hash 变了，Remote 部分可能需要更新原补丁包里的 diff 或匹配逻辑。
+Remote Control 分两层。本仓库内置的是 `remote.json` 凭据校验和安装；完整 Remote Control 内部补丁没有内置，因为它涉及更多 Electron hook、app-server 行为和 Codex CLI 二进制 hash。`--enable-remote` 只是高级入口，用来调用你自己提供的外部 Remote patch 目录。
 
 ## 安装方式
 
@@ -78,11 +78,12 @@ chmod +x ~/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_p
   --skip-fast-goal
 ```
 
-安装 Remote 凭据，并尝试应用 Remote Control 补丁：
+安装 Remote 凭据，并尝试调用外部 Remote Control patch 目录：
 
 ```bash
 ~/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_patches.sh \
   --remote-json "/path/to/remote.json" \
+  --patch-dir "/path/to/remote-patch-dir" \
   --enable-remote
 ```
 
@@ -95,6 +96,8 @@ Remote 凭据要求：
 - token 需要包含 ChatGPT auth claims、account id、account user id。
 - token 不能过期。
 - 如果要真正完成 Remote enrollment，通常还需要 Remote Control 相关 scope。
+
+这个仓库本身不内置完整 Remote Control patch。如果没有外部 Remote patch 目录，不要使用 `--enable-remote`；只用 `--remote-json` 做凭据安装和校验即可。
 
 ## Codex 更新后怎么用
 
@@ -109,10 +112,11 @@ Codex Desktop 更新后，重新运行：
 ```bash
 ~/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_patches.sh \
   --enable-remote \
+  --patch-dir "/path/to/remote-patch-dir" \
   --remote-json "/path/to/remote.json"
 ```
 
-如果 Remote 失败但 Fast/Goal 成功，可以先继续使用 Fast/Goal。Remote 多半是 CLI hash 不匹配，需要更新原始补丁包。
+如果 Remote 失败但 Fast/Goal 成功，可以先继续使用 Fast/Goal。Remote 多半是外部 patch 目录不匹配当前 Codex 版本，或者 CLI hash 不匹配。
 
 ## 前端 bundle 变了怎么入手
 
@@ -153,7 +157,7 @@ Goal 通常是本地 feature flag/config gate 加上 `mode !== "cloud"`。处理
 scripts/deploy_codex_local_patches.sh
 ```
 
-主要改里面的 Fast/Goal 正则，不要顺手重写 Remote。Remote 是另一条链路，CLI hash 和二进制 diff 更敏感。
+主要改里面的 Fast/Goal 正则，不要顺手重写 Remote。Remote 是另一条链路，CLI hash、Electron hook 和二进制 diff 都更敏感。
 
 改完后至少跑：
 
@@ -249,4 +253,4 @@ Windows 上强开成功的判断也一样：重新解包最终写回的 `app.asa
 
 如果 Fast/Goal 匹配失败，说明 Codex 新版本前端 bundle 结构变化了，需要更新 `scripts/deploy_codex_local_patches.sh` 里的正则匹配。
 
-如果 Remote patch 失败但 Fast/Goal 成功，通常是 Codex CLI 二进制 hash 不匹配。此时 Fast/Goal 可以继续用，Remote 需要更新本机的 `codex-local-patches` 补丁包。
+如果 Remote patch 失败但 Fast/Goal 成功，通常是外部 Remote patch 目录不适配当前 Codex 版本，或者 Codex CLI 二进制 hash 不匹配。此时 Fast/Goal 可以继续用，Remote 需要单独更新外部 patch 目录。

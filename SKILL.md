@@ -1,6 +1,6 @@
 ---
 name: codex-local-patches-deploy
-description: Re-deploy local Codex Desktop patches after app updates, including third-party API config, forced Fast mode, forced Goal support, optional Remote Control credential validation, and optional Remote Control patching from a user-supplied codex-local-patches directory.
+description: Re-deploy local Codex Desktop patches after app updates, including third-party API config, forced Fast mode, forced Goal support, Remote Control credential validation, and an advanced optional hook for external Remote Control patch packages.
 metadata:
   short-description: Reapply Codex Fast/Goal/Remote patches
 ---
@@ -13,7 +13,6 @@ Use this skill when the user wants Codex Desktop to keep working with a third-pa
 - 强制开 Goal / goal mode
 - 第三方 API / custom provider / base_url
 - Remote Control / remote.json
-- `codex-local-patches`
 - `--patch-dir`
 - Codex 更新后重新部署补丁
 
@@ -32,7 +31,7 @@ This default path:
 - Updates `ElectronAsarIntegrity`.
 - Re-signs `/Applications/Codex.app` ad-hoc with the minimum Apple Events entitlement.
 - Verifies `codesign` and re-extracts the patched asar to confirm Fast/Goal are patched.
-- Does not patch Remote Control unless explicitly requested.
+- Does not patch full Remote Control internals unless explicitly requested with `--enable-remote`.
 
 ## Common Commands
 
@@ -57,7 +56,7 @@ Install and validate a Remote Control credential file, but do not patch Remote:
   --remote-json "/path/to/chatgpt-remote.json"
 ```
 
-Also attempt Remote Control patching through the maintained patch package:
+Advanced: call an external Remote Control patch package:
 
 ```bash
 ~/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_patches.sh \
@@ -74,7 +73,9 @@ Remote Control is intentionally separate from the normal third-party API config.
 - A plain OpenAI API key is not valid.
 - A normal ChatGPT model access token may still be invalid if it lacks Remote Control scope or account claims.
 - The script validates JWT shape, expiration, ChatGPT auth claims, account user id, and account id before installing `remote.json`.
-- Remote Control patching is best-effort because the bundled CLI binary patch is version/hash-sensitive.
+- This skill is self-contained for third-party API, Fast, Goal, and Remote credential validation.
+- Full Remote Control internals are not self-contained here. `--enable-remote` only delegates to an external patch package supplied through `--patch-dir`.
+- Full Remote Control patching is best-effort because the bundled CLI binary patch is version/hash-sensitive.
 
 If `--enable-remote` fails with an unsupported CLI hash, keep Fast/Goal as successful and report that Remote needs the patch package updated for the new Codex CLI hash.
 
