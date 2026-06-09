@@ -2,7 +2,7 @@
 set -euo pipefail
 
 APP_PATH="/Applications/Codex.app"
-PATCH_DIR="/Users/leviviya/Documents/codex-local-patches"
+PATCH_DIR="${CODEX_LOCAL_PATCHES_DIR:-$HOME/Documents/codex-local-patches}"
 CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
 CONFIG_PATH="$CODEX_HOME/config.toml"
 REMOTE_PATH="$CODEX_HOME/remote.json"

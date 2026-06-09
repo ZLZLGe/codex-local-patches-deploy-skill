@@ -1,6 +1,6 @@
 ---
 name: codex-local-patches-deploy
-description: Re-deploy local Codex Desktop patches after app updates, including third-party API config, forced Fast mode, forced Goal support, optional Remote Control credential validation, and optional Remote Control patching from /Users/leviviya/Documents/codex-local-patches.
+description: Re-deploy local Codex Desktop patches after app updates, including third-party API config, forced Fast mode, forced Goal support, optional Remote Control credential validation, and optional Remote Control patching from a user-supplied codex-local-patches directory.
 metadata:
   short-description: Reapply Codex Fast/Goal/Remote patches
 ---
@@ -13,7 +13,8 @@ Use this skill when the user wants Codex Desktop to keep working with a third-pa
 - 强制开 Goal / goal mode
 - 第三方 API / custom provider / base_url
 - Remote Control / remote.json
-- `/Users/leviviya/Documents/codex-local-patches`
+- `codex-local-patches`
+- `--patch-dir`
 - Codex 更新后重新部署补丁
 
 ## Default Action
@@ -21,7 +22,7 @@ Use this skill when the user wants Codex Desktop to keep working with a third-pa
 Run the bundled deployment script instead of rewriting patch commands by hand:
 
 ```bash
-/Users/leviviya/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_patches.sh
+~/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_patches.sh
 ```
 
 This default path:
@@ -38,13 +39,13 @@ This default path:
 Use the current config provider and base URL:
 
 ```bash
-/Users/leviviya/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_patches.sh
+~/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_patches.sh
 ```
 
 Set or update the third-party API base URL:
 
 ```bash
-/Users/leviviya/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_patches.sh \
+~/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_patches.sh \
   --base-url "https://example.com/v1" \
   --model "gpt-5.4"
 ```
@@ -52,14 +53,14 @@ Set or update the third-party API base URL:
 Install and validate a Remote Control credential file, but do not patch Remote:
 
 ```bash
-/Users/leviviya/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_patches.sh \
+~/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_patches.sh \
   --remote-json "/path/to/chatgpt-remote.json"
 ```
 
 Also attempt Remote Control patching through the maintained patch package:
 
 ```bash
-/Users/leviviya/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_patches.sh \
+~/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_patches.sh \
   --enable-remote \
   --remote-json "/path/to/chatgpt-remote.json"
 ```
