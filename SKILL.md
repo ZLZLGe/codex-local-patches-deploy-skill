@@ -1,17 +1,17 @@
 ---
 name: codex-local-patches-deploy
-description: Re-deploy local Codex Desktop patches after app updates, including forced Fast mode, forced Goal support, optional custom provider config updates, Remote Control credential validation, and an advanced optional hook for external Remote Control patch packages.
+description: Re-deploy local Codex Desktop patches after app updates, especially forcing Fast mode and Goal to work when Codex uses a third-party API/custom provider, with optional provider config updates, Remote Control credential validation, and an advanced optional hook for external Remote Control patch packages.
 metadata:
   short-description: Reapply Codex Fast/Goal/Remote patches
 ---
 
 # Codex Local Patches Deploy
 
-Use this skill when the user wants Codex Desktop Fast/Goal patches reapplied after app updates, optionally while keeping a custom provider config, especially requests mentioning:
+Use this skill when the user wants Codex Desktop to force-enable Fast/Goal while using a third-party API/custom provider, especially after app updates and especially requests mentioning:
 
 - 强制开 Fast / fast mode
 - 强制开 Goal / goal mode
-- custom provider / base_url
+- 第三方 API / custom provider / base_url
 - Remote Control / remote.json
 - `--patch-dir`
 - Codex 更新后重新部署补丁
@@ -26,8 +26,8 @@ Run the bundled deployment script instead of rewriting patch commands by hand:
 
 This default path:
 
-- Preserves existing `~/.codex/config.toml` and ensures the selected custom provider is configured.
-- Patches only Fast and Goal gates in `/Applications/Codex.app/Contents/Resources/app.asar`.
+- Preserves existing `~/.codex/config.toml` and ensures the selected custom provider is configured when requested.
+- Patches the local Fast and Goal gates that normally block non-ChatGPT/custom-provider auth paths.
 - Updates `ElectronAsarIntegrity`.
 - Re-signs `/Applications/Codex.app` ad-hoc with the minimum Apple Events entitlement.
 - Verifies `codesign` and re-extracts the patched asar to confirm Fast/Goal are patched.
@@ -73,7 +73,7 @@ Remote Control is intentionally separate from the normal custom provider config.
 - A plain OpenAI API key is not valid.
 - A normal ChatGPT model access token may still be invalid if it lacks Remote Control scope or account claims.
 - The script validates JWT shape, expiration, ChatGPT auth claims, account user id, and account id before installing `remote.json`.
-- This skill is self-contained for custom provider config updates, Fast, Goal, and Remote credential validation.
+- This skill is self-contained for forcing Fast/Goal under third-party API/custom-provider usage, plus optional custom provider config updates and Remote credential validation.
 - Full Remote Control internals are not self-contained here. `--enable-remote` only delegates to an external patch package supplied through `--patch-dir`.
 - Full Remote Control patching is best-effort because the bundled CLI binary patch is version/hash-sensitive.
 

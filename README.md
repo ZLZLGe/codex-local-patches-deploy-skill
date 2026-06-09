@@ -1,11 +1,11 @@
 # Codex 本地补丁重新部署 Skill
 
-这个 Skill 用来在 Codex Desktop 更新后，重新部署本地补丁。
+这个 Skill 用来在 Codex Desktop 更新后，重新部署本地补丁，让第三方 API / custom provider 场景也能强制开启 Fast 和 Goal。
 
 主要能力：
 
-- 强制开启 Fast mode。
-- 强制开启 Goal。
+- 在第三方 API / custom provider 场景下强制开启 Fast mode。
+- 在第三方 API / custom provider 场景下强制开启 Goal。
 - 附带更新或保留 Codex 的 custom provider 配置。
 - 可选安装并校验 Remote Control 使用的 `remote.json`。
 - 高级可选：调用用户自己提供的 Remote Control patch 目录。
@@ -21,7 +21,7 @@ Codex CLI: codex-cli 0.137.0-alpha.4
 系统: macOS / Apple Silicon
 ```
 
-这个仓库的核心能力是 Fast/Goal 本地补丁。它会顺手更新或保留 `~/.codex/config.toml` 里的 custom provider 配置，但第三方 API 本身不是被“强开”的功能，只是 Codex 请求要走的后端地址。
+这个仓库的核心能力是：让 Codex 在使用第三方 API / custom provider 时，也能通过本地补丁打开 Fast/Goal。第三方 API 本身不是被 patch 的对象，它是 Codex 请求要走的后端；被 patch 的是 Codex Desktop 本地对 Fast/Goal 的限制判断。
 
 Fast/Goal 补丁是通过匹配 `app.asar` 里的前端 bundle 结构实现的。只要 Codex 更新后相关 JS 结构没有大改，通常可以继续使用。
 
@@ -45,13 +45,13 @@ chmod +x ~/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_p
 
 ## 基础用法
 
-使用当前 `~/.codex/config.toml` 里的 custom provider 配置，并重新部署 Fast/Goal：
+使用当前 `~/.codex/config.toml` 里的 custom provider 配置，并重新部署第三方 API 场景下的 Fast/Goal 强开补丁：
 
 ```bash
 ~/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_patches.sh
 ```
 
-指定 custom provider 的 API 地址和模型：
+指定 custom provider 的 API 地址和模型，并部署 Fast/Goal 强开补丁：
 
 ```bash
 ~/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_patches.sh \
@@ -59,7 +59,7 @@ chmod +x ~/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_p
   --model "gpt-5.5"
 ```
 
-只配置 custom provider，不修改 `app.asar`：
+只配置 custom provider，不部署 Fast/Goal 强开补丁：
 
 ```bash
 ~/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_patches.sh \
