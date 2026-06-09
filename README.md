@@ -114,6 +114,117 @@ Codex Desktop 更新后，重新运行：
 
 如果 Remote 失败但 Fast/Goal 成功，可以先继续使用 Fast/Goal。Remote 多半是 CLI hash 不匹配，需要更新原始补丁包。
 
+## 前端 bundle 变了怎么入手
+
+如果 Codex 更新后脚本提示 `fast gate target not found`、`goal target not found`，说明新版 `app.asar` 里的前端 bundle 结构变了。处理思路不是乱猜，而是重新找本地 gate。
+
+先解包当前版本：
+
+```bash
+TMP_DIR="$(mktemp -d /tmp/codex-bundle-drift.XXXXXX)"
+npx --yes @electron/asar extract /Applications/Codex.app/Contents/Resources/app.asar "$TMP_DIR/app"
+ASSETS="$TMP_DIR/app/webview/assets"
+```
+
+搜索 Fast 相关锚点：
+
+```bash
+rg -n 'fast_mode|featureRequirements|isServiceTierAllowed|read-service-tier|authMethod.*chatgpt' "$ASSETS"
+```
+
+Fast 通常有两个 gate：
+
+- UI gate：控制界面是否允许显示或选择 Fast。
+- Request gate：控制请求构造时是否真正带上 Fast 相关参数。
+
+要做的事情一般还是一样：去掉本地 `authMethod === "chatgpt"` 限制，但保留 `fast_mode !== false` 这类能力检查。
+
+搜索 Goal 相关锚点：
+
+```bash
+rg -n 'set-thread-goal-status|threadGoalObjective|3074100722|`goals`|goals' "$ASSETS"
+```
+
+Goal 通常是本地 feature flag/config gate 加上 `mode !== "cloud"`。处理目标是保留 `mode !== "cloud"`，去掉本地 feature flag/config 限制。
+
+找到新版结构后，只改：
+
+```text
+scripts/deploy_codex_local_patches.sh
+```
+
+主要改里面的 Fast/Goal 正则，不要顺手重写 Remote。Remote 是另一条链路，CLI hash 和二进制 diff 更敏感。
+
+改完后至少跑：
+
+```bash
+bash -n ~/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_patches.sh
+~/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_patches.sh --skip-config
+```
+
+脚本最后会重新解包当前 app 的 `app.asar` 做验证。只有看到 Fast 两个 gate、Goal gate 都是 patched，并且 `originalsLeft` 为空，才算成功。
+
+## Windows 电脑怎么强开
+
+Windows 的核心思路和 macOS 一样：改 Codex Desktop 安装目录里的 `resources/app.asar`，把前端 bundle 里的 Fast/Goal 本地 gate 改掉。
+
+不同点是：
+
+- Windows 没有 macOS 的 `codesign`。
+- Windows 没有这个脚本里用到的 `PlistBuddy`。
+- 当前仓库里的 `deploy_codex_local_patches.sh` 是 macOS 优先脚本，不能直接在 Windows 上原样跑。
+- Windows 需要单独把同一套 JS 正则 patch 逻辑移植成 PowerShell/Node 脚本。
+
+先在 PowerShell 里找 `app.asar`：
+
+```powershell
+$roots = @($env:LOCALAPPDATA, $env:ProgramFiles, ${env:ProgramFiles(x86)})
+Get-ChildItem $roots -Filter app.asar -Recurse -ErrorAction SilentlyContinue |
+  Where-Object { $_.FullName -match 'Codex.*resources.*app\.asar$' } |
+  Select-Object -ExpandProperty FullName
+```
+
+常见 Electron 安装路径类似：
+
+```text
+%LOCALAPPDATA%\Programs\Codex\resources\app.asar
+```
+
+找到后，基本流程是：
+
+```powershell
+$asar = "$env:LOCALAPPDATA\Programs\Codex\resources\app.asar"
+$work = Join-Path $env:TEMP ("codex-asar-" + [guid]::NewGuid())
+
+npx --yes @electron/asar extract $asar "$work\app"
+
+# 这里需要把 scripts/deploy_codex_local_patches.sh 里的 Fast/Goal 正则替换逻辑
+# 移植成一个 Windows 可跑的 Node 脚本，对 "$work\app\webview\assets" 执行。
+
+npx --yes @electron/asar pack "$work\app" "$work\app.asar"
+
+Copy-Item $asar "$asar.before-fast-goal" -Force
+Copy-Item "$work\app.asar" $asar -Force
+```
+
+Windows 上要找的 Fast/Goal 位置仍然一样：
+
+```powershell
+rg -n "fast_mode|featureRequirements|isServiceTierAllowed|read-service-tier|authMethod.*chatgpt" "$work\app\webview\assets"
+rg -n "set-thread-goal-status|threadGoalObjective|3074100722|``goals``|goals" "$work\app\webview\assets"
+```
+
+Fast 仍然是两个 gate：
+
+- UI gate：控制界面是否显示或允许选择 Fast。
+- Request gate：控制请求构造时是否真正带 Fast 相关参数。
+
+Goal 仍然是本地 feature flag/config gate 加 `mode !== "cloud"`。
+
+Windows 上强开成功的判断也一样：重新解包最终写回的 `app.asar`，确认 Fast 两个 gate 和 Goal gate 都已经变成 patched，原始 gate 没有残留。
+
+如果 Windows 版 Codex 启动时报完整性错误，先检查该版本是否额外校验 `app.asar` hash。不要一上来改 Remote，先把 Fast/Goal 的前端 patch 跑通。
+
 ## 脚本具体做什么
 
 脚本会执行这些步骤：
