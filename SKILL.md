@@ -1,17 +1,17 @@
 ---
 name: codex-local-patches-deploy
-description: Re-deploy local Codex Desktop patches after app updates, including third-party API config, forced Fast mode, forced Goal support, Remote Control credential validation, and an advanced optional hook for external Remote Control patch packages.
+description: Re-deploy local Codex Desktop patches after app updates, including forced Fast mode, forced Goal support, optional custom provider config updates, Remote Control credential validation, and an advanced optional hook for external Remote Control patch packages.
 metadata:
   short-description: Reapply Codex Fast/Goal/Remote patches
 ---
 
 # Codex Local Patches Deploy
 
-Use this skill when the user wants Codex Desktop to keep working with a third-party API provider after Codex updates, especially requests mentioning:
+Use this skill when the user wants Codex Desktop Fast/Goal patches reapplied after app updates, optionally while keeping a custom provider config, especially requests mentioning:
 
 - 强制开 Fast / fast mode
 - 强制开 Goal / goal mode
-- 第三方 API / custom provider / base_url
+- custom provider / base_url
 - Remote Control / remote.json
 - `--patch-dir`
 - Codex 更新后重新部署补丁
@@ -41,7 +41,7 @@ Use the current config provider and base URL:
 ~/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_patches.sh
 ```
 
-Set or update the third-party API base URL:
+Set or update the custom provider base URL:
 
 ```bash
 ~/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_patches.sh \
@@ -66,14 +66,14 @@ Advanced: call an external Remote Control patch package:
 
 ## Remote Rules
 
-Remote Control is intentionally separate from the normal third-party API config.
+Remote Control is intentionally separate from the normal custom provider config.
 
 - Remote credential path is fixed: `~/.codex/remote.json`.
 - Do not copy `~/.codex/auth.json` to `remote.json`.
 - A plain OpenAI API key is not valid.
 - A normal ChatGPT model access token may still be invalid if it lacks Remote Control scope or account claims.
 - The script validates JWT shape, expiration, ChatGPT auth claims, account user id, and account id before installing `remote.json`.
-- This skill is self-contained for third-party API, Fast, Goal, and Remote credential validation.
+- This skill is self-contained for custom provider config updates, Fast, Goal, and Remote credential validation.
 - Full Remote Control internals are not self-contained here. `--enable-remote` only delegates to an external patch package supplied through `--patch-dir`.
 - Full Remote Control patching is best-effort because the bundled CLI binary patch is version/hash-sensitive.
 

@@ -4,9 +4,9 @@
 
 主要能力：
 
-- 配置第三方 API provider。
 - 强制开启 Fast mode。
 - 强制开启 Goal。
+- 附带更新或保留 Codex 的 custom provider 配置。
 - 可选安装并校验 Remote Control 使用的 `remote.json`。
 - 高级可选：调用用户自己提供的 Remote Control patch 目录。
 
@@ -21,7 +21,9 @@ Codex CLI: codex-cli 0.137.0-alpha.4
 系统: macOS / Apple Silicon
 ```
 
-第三方 API、Fast、Goal 这三块是这个仓库脚本自包含完成的。Fast/Goal 补丁是通过匹配 `app.asar` 里的前端 bundle 结构实现的。只要 Codex 更新后相关 JS 结构没有大改，通常可以继续使用。
+这个仓库的核心能力是 Fast/Goal 本地补丁。它会顺手更新或保留 `~/.codex/config.toml` 里的 custom provider 配置，但第三方 API 本身不是被“强开”的功能，只是 Codex 请求要走的后端地址。
+
+Fast/Goal 补丁是通过匹配 `app.asar` 里的前端 bundle 结构实现的。只要 Codex 更新后相关 JS 结构没有大改，通常可以继续使用。
 
 Remote Control 分两层。本仓库内置的是 `remote.json` 凭据校验和安装；完整 Remote Control 内部补丁没有内置，因为它涉及更多 Electron hook、app-server 行为和 Codex CLI 二进制 hash。`--enable-remote` 只是高级入口，用来调用你自己提供的外部 Remote patch 目录。
 
@@ -43,13 +45,13 @@ chmod +x ~/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_p
 
 ## 基础用法
 
-使用当前 `~/.codex/config.toml` 里的第三方 API 配置，并重新部署 Fast/Goal：
+使用当前 `~/.codex/config.toml` 里的 custom provider 配置，并重新部署 Fast/Goal：
 
 ```bash
 ~/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_patches.sh
 ```
 
-指定第三方 API 地址和模型：
+指定 custom provider 的 API 地址和模型：
 
 ```bash
 ~/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_patches.sh \
@@ -57,7 +59,7 @@ chmod +x ~/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_p
   --model "gpt-5.5"
 ```
 
-只配置第三方 API，不修改 `app.asar`：
+只配置 custom provider，不修改 `app.asar`：
 
 ```bash
 ~/.codex/skills/codex-local-patches-deploy/scripts/deploy_codex_local_patches.sh \
