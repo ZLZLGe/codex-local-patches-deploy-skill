@@ -2,6 +2,8 @@
 
 这个 Skill 用来在 Codex Desktop 更新后，重新部署本地补丁，让第三方 API / custom provider 场景也能强制开启 Fast 和 Goal。
 
+友链：[linux.do](https://linux.do/)
+
 主要能力：
 
 - 在第三方 API / custom provider 场景下强制开启 Fast mode。
